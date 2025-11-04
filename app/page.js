@@ -35,7 +35,7 @@ export default function Home() {
 
       if (res.ok) {
         const todo = await res.json();
-        setTodos([...todos, todo]);
+        setTodos(prevTodos => [...prevTodos, todo]);
         setNewTask('');
       }
     } catch (error) {
@@ -53,7 +53,7 @@ export default function Home() {
 
       if (res.ok) {
         const updatedTodo = await res.json();
-        setTodos(todos.map(t => t.id === id ? updatedTodo : t));
+        setTodos(prevTodos => prevTodos.map(t => t.id === id ? updatedTodo : t));
       }
     } catch (error) {
       console.error('Failed to update todo:', error);
@@ -67,7 +67,7 @@ export default function Home() {
       });
 
       if (res.ok) {
-        setTodos(todos.filter(t => t.id !== id));
+        setTodos(prevTodos => prevTodos.filter(t => t.id !== id));
       }
     } catch (error) {
       console.error('Failed to delete todo:', error);
