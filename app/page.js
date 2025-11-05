@@ -7,6 +7,7 @@ export default function Home() {
   const [newTask, setNewTask] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
 
   // Format date for display
   function formatDate(dateString) {
@@ -17,6 +18,20 @@ export default function Home() {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}/${month}/${day} ${hours}:${minutes}`;
+  }
+
+  // Sort todos by date
+  function getSortedTodos() {
+    return [...todos].sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+    });
+  }
+
+  // Toggle sort order
+  function toggleSortOrder() {
+    setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
   }
 
   // Fetch todos on mount
@@ -133,9 +148,22 @@ export default function Home() {
             </button>
           </div>
 
+          {/* Sort Button */}
+          {todos.length > 0 && (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={toggleSortOrder}
+                className="flex items-center gap-2 px-4 py-2 text-sm text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors"
+              >
+                <span>日付</span>
+                <span className="text-lg">{sortOrder === 'desc' ? '↓' : '↑'}</span>
+              </button>
+            </div>
+          )}
+
           {/* Todo List */}
           <div className="space-y-3 sm:space-y-4">
-            {todos.map((todo) => (
+            {getSortedTodos().map((todo) => (
               <div
                 key={todo.id}
                 className="flex items-center gap-2 sm:gap-4 bg-white border-2 border-amber-300 rounded-2xl p-3 sm:p-6"
