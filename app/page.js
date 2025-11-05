@@ -8,6 +8,17 @@ export default function Home() {
   const [editingId, setEditingId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
 
+  // Format date for display
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}/${month}/${day} ${hours}:${minutes}`;
+  }
+
   // Fetch todos on mount
   useEffect(() => {
     fetchTodos();
@@ -159,9 +170,14 @@ export default function Home() {
                   </>
                 ) : (
                   <>
-                    <span className="flex-1 text-base sm:text-lg text-gray-800 break-words">
-                      {todo.title}
-                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-base sm:text-lg text-gray-800 break-words">
+                        {todo.title}
+                      </div>
+                      <div className="text-xs sm:text-sm text-gray-500 mt-1">
+                        {formatDate(todo.createdAt)}
+                      </div>
+                    </div>
                     <button
                       onClick={() => startEdit(todo)}
                       className="text-xl sm:text-2xl hover:opacity-70 transition-opacity min-w-[2rem] sm:min-w-0 flex-shrink-0"
