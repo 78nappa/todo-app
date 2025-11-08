@@ -10,6 +10,9 @@ export default function Home() {
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
   const [newTag, setNewTag] = useState('');
   const [editingTags, setEditingTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]); // フィルター用
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'grouped'
+  const [showTagFilter, setShowTagFilter] = useState(false);
 
   // Format date for display
   function formatDate(dateString) {
@@ -34,6 +37,74 @@ export default function Home() {
   // Toggle sort order
   function toggleSortOrder() {
     setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
+  }
+
+  // Get all unique tags from todos
+  function getAllTags() {
+    const tagSet = new Set();
+    todos.forEach(todo => {
+      if (todo.tags && Array.isArray(todo.tags)) {
+        todo.tags.forEach(tag => tagSet.add(tag));
+      }
+    });
+    return Array.from(tagSet).sort();
+  }
+
+  // Toggle tag filter
+  function toggleTagFilter(tag) {
+    if (selectedTags.includes(tag)) {
+      setSelectedTags(selectedTags.filter(t => t !== tag));
+    } else {
+      setSelectedTags([...selectedTags, tag]);
+    }
+  }
+
+  // Get filtered todos
+  function getFilteredTodos() {
+    const sorted = getSortedTodos();
+    if (selectedTags.length === 0) {
+      return sorted;
+    }
+    return sorted.filter(todo =>
+      todo.tags && todo.tags.some(tag => selectedTags.includes(tag))
+    );
+  }
+
+  // Get grouped todos by tag
+  function getGroupedTodos() {
+    const filtered = getFilteredTodos();
+    const grouped = {};
+
+    // Initialize groups for selected tags or all tags
+    const tagsToGroup = selectedTags.length > 0 ? selectedTags : getAllTags();
+    tagsToGroup.forEach(tag => {
+      grouped[tag] = [];
+    });
+
+    // Add "No tags" group
+    grouped['タグなし'] = [];
+
+    // Group todos
+    filtered.forEach(todo => {
+      if (!todo.tags || todo.tags.length === 0) {
+        grouped['タグなし'].push(todo);
+      } else {
+        todo.tags.forEach(tag => {
+          if (grouped[tag]) {
+            grouped[tag].push(todo);
+          }
+        });
+      }
+    });
+
+    // Remove empty groups
+    Object.keys(grouped).forEach(key => {
+      if (grouped[key].length === 0) {
+        delete grouped[key];
+      }
+    });
+
+    return grouped;
   }
 
   // Fetch todos on mount
@@ -201,22 +272,79 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Sort Button */}
+          {/* Filter and View Controls */}
           {todos.length > 0 && (
-            <div className="flex justify-end mb-4">
-              <button
-                onClick={toggleSortOrder}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors"
-              >
-                <span>日付</span>
-                <span className="text-lg">{sortOrder === 'desc' ? '↓' : '↑'}</span>
-              </button>
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+              {/* Tag Filter Dropdown */}
+              <div className="relative flex-1">
+                <button
+                  onClick={() => setShowTagFilter(!showTagFilter)}
+                  className="w-full sm:w-auto flex items-center gap-2 px-4 py-2 text-sm text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors"
+                >
+                  <span>タグで絞り込み</span>
+                  {selectedTags.length > 0 && (
+                    <span className="px-2 py-0.5 bg-amber-300 text-amber-900 text-xs rounded-full">
+                      {selectedTags.length}
+                    </span>
+                  )}
+                  <span className="text-lg">{showTagFilter ? '▲' : '▼'}</span>
+                </button>
+
+                {showTagFilter && getAllTags().length > 0 && (
+                  <div className="absolute top-full left-0 mt-2 w-full sm:w-64 bg-white border-2 border-amber-300 rounded-lg shadow-lg z-10 p-3 max-h-60 overflow-y-auto">
+                    <div className="space-y-2">
+                      {getAllTags().map(tag => (
+                        <label
+                          key={tag}
+                          className="flex items-center gap-2 cursor-pointer hover:bg-amber-50 p-2 rounded"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedTags.includes(tag)}
+                            onChange={() => toggleTagFilter(tag)}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-sm">{tag}</span>
+                        </label>
+                      ))}
+                    </div>
+                    {selectedTags.length > 0 && (
+                      <button
+                        onClick={() => setSelectedTags([])}
+                        className="w-full mt-3 px-3 py-1.5 text-xs text-amber-800 bg-amber-100 hover:bg-amber-200 rounded"
+                      >
+                        すべてクリア
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* View Mode and Sort */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setViewMode(viewMode === 'list' ? 'grouped' : 'list')}
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors"
+                >
+                  <span>{viewMode === 'list' ? 'グループ表示' : 'リスト表示'}</span>
+                </button>
+
+                <button
+                  onClick={toggleSortOrder}
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors"
+                >
+                  <span>日付</span>
+                  <span className="text-lg">{sortOrder === 'desc' ? '↓' : '↑'}</span>
+                </button>
+              </div>
             </div>
           )}
 
           {/* Todo List */}
-          <div className="space-y-3 sm:space-y-4">
-            {getSortedTodos().map((todo) => (
+          {viewMode === 'list' ? (
+            // List View
+            <div className="space-y-3 sm:space-y-4">
+              {getFilteredTodos().map((todo) => (
               <div
                 key={todo.id}
                 className="bg-white border-2 border-amber-300 rounded-2xl p-3 sm:p-6"
@@ -349,11 +477,168 @@ export default function Home() {
                 )}
               </div>
             ))}
-          </div>
+            </div>
+          ) : (
+            // Grouped View
+            <div className="space-y-6">
+              {Object.entries(getGroupedTodos()).map(([tag, tagTodos]) => (
+                <div key={tag} className="space-y-3">
+                  <h3 className="text-lg font-semibold text-amber-900 flex items-center gap-2">
+                    <span className="px-3 py-1 bg-amber-200 rounded-lg">{tag}</span>
+                    <span className="text-sm text-amber-700">({tagTodos.length})</span>
+                  </h3>
+                  <div className="space-y-3 sm:space-y-4">
+                    {tagTodos.map((todo) => (
+                      <div
+                        key={todo.id}
+                        className="bg-white border-2 border-amber-300 rounded-2xl p-3 sm:p-6"
+                      >
+                        {editingId === todo.id ? (
+                          <div className="space-y-3">
+                            {/* Title Edit */}
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={editingTitle}
+                                onChange={(e) => setEditingTitle(e.target.value)}
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') saveEdit(todo.id);
+                                  if (e.key === 'Escape') cancelEdit();
+                                }}
+                                className="flex-1 px-3 sm:px-4 py-2 text-base sm:text-lg border-2 border-amber-300 rounded-lg focus:outline-none focus:border-amber-500"
+                                autoFocus
+                              />
+                              <button
+                                onClick={() => saveEdit(todo.id)}
+                                className="text-green-600 hover:text-green-700 text-xl sm:text-2xl min-w-[2rem]"
+                                title="Save"
+                              >
+                                ✓
+                              </button>
+                              <button
+                                onClick={cancelEdit}
+                                className="text-red-600 hover:text-red-700 text-xl sm:text-2xl min-w-[2rem]"
+                                title="Cancel"
+                              >
+                                ✕
+                              </button>
+                            </div>
+
+                            {/* Tag Edit Area */}
+                            <div className="border-t pt-3">
+                              <div className="flex gap-2 mb-2">
+                                <input
+                                  type="text"
+                                  value={newTag}
+                                  onChange={(e) => setNewTag(e.target.value)}
+                                  onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      addTagToEditingTask(newTag);
+                                    }
+                                  }}
+                                  placeholder="タグを追加"
+                                  className="flex-1 px-3 py-1.5 text-sm border border-amber-300 rounded-lg focus:outline-none focus:border-amber-500"
+                                />
+                                <button
+                                  onClick={() => addTagToEditingTask(newTag)}
+                                  className="px-3 py-1.5 bg-amber-200 hover:bg-amber-300 text-amber-900 text-sm rounded-lg whitespace-nowrap"
+                                >
+                                  追加
+                                </button>
+                              </div>
+                              {editingTags.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5">
+                                  {editingTags.map((tag, index) => (
+                                    <span
+                                      key={index}
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 text-xs rounded-full"
+                                    >
+                                      {tag}
+                                      <button
+                                        onClick={() => removeTagFromEditingTask(tag)}
+                                        className="hover:text-red-600"
+                                        title="削除"
+                                      >
+                                        ✕
+                                      </button>
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {/* Title and Date */}
+                            <div className="flex items-start gap-2">
+                              <div className="flex-1 min-w-0">
+                                <div className="text-base sm:text-lg text-gray-800 break-words">
+                                  {todo.title}
+                                </div>
+                                <div className="text-xs sm:text-sm text-gray-500 mt-1">
+                                  {formatDate(todo.createdAt)}
+                                </div>
+                              </div>
+                              <div className="flex gap-2 flex-shrink-0">
+                                <button
+                                  onClick={() => startEdit(todo)}
+                                  className="text-xl sm:text-2xl hover:opacity-70 transition-opacity"
+                                  title="Edit"
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  onClick={() => deleteTodo(todo.id)}
+                                  className="text-xl sm:text-2xl hover:opacity-70 transition-opacity"
+                                  title="Delete"
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Tag Display Area */}
+                            {(todo.tags && todo.tags.length > 0) && (
+                              <div className="border-t pt-3">
+                                <div className="flex flex-wrap gap-1.5">
+                                  {todo.tags.map((tag, index) => (
+                                    <span
+                                      key={index}
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 text-xs rounded-full"
+                                    >
+                                      {tag}
+                                      <button
+                                        onClick={() => removeTagFromTodo(todo.id, tag)}
+                                        className="hover:text-red-600"
+                                        title="削除"
+                                      >
+                                        ✕
+                                      </button>
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {todos.length === 0 && (
             <div className="text-center text-amber-700 text-base sm:text-lg py-6 sm:py-8">
               No tasks yet. Add one to get started!
+            </div>
+          )}
+
+          {todos.length > 0 && getFilteredTodos().length === 0 && (
+            <div className="text-center text-amber-700 text-base sm:text-lg py-6 sm:py-8">
+              選択したタグのタスクがありません
             </div>
           )}
         </div>
