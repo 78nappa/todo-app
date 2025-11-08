@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function Home() {
   const [todos, setTodos] = useState([]);
@@ -14,6 +14,25 @@ export default function Home() {
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'grouped'
   const [showTagFilter, setShowTagFilter] = useState(false);
   const [showCompleted, setShowCompleted] = useState(true); // 完了済みタスクを表示するか
+
+  // Ref for tag filter dropdown
+  const tagFilterRef = useRef(null);
+
+  // Close tag filter dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (tagFilterRef.current && !tagFilterRef.current.contains(event.target)) {
+        setShowTagFilter(false);
+      }
+    }
+
+    if (showTagFilter) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showTagFilter]);
 
   // Format date for display
   function formatDate(dateString) {
@@ -291,7 +310,7 @@ export default function Home() {
           {todos.length > 0 && (
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
               {/* Tag Filter Dropdown */}
-              <div className="relative flex-1">
+              <div ref={tagFilterRef} className="relative flex-1">
                 <button
                   onClick={() => setShowTagFilter(!showTagFilter)}
                   className="w-full sm:w-auto flex items-center gap-2 px-4 py-2 text-sm text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors"
