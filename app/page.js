@@ -64,7 +64,14 @@ export default function Home() {
       if (res.ok) {
         const todo = await res.json();
         setTodos(prevTodos => [...prevTodos, todo]);
+
+        // Clear input
         setNewTask('');
+
+        // Open in edit mode for tag editing
+        setEditingId(todo.id);
+        setEditingTitle(todo.title);
+        setEditingTags([]);
       }
     } catch (error) {
       console.error('Failed to add todo:', error);
@@ -82,6 +89,9 @@ export default function Home() {
       if (res.ok) {
         const updatedTodo = await res.json();
         setTodos(prevTodos => prevTodos.map(t => t.id === id ? updatedTodo : t));
+      } else if (res.status === 404) {
+        // Todo not found on server, refetch all todos
+        await fetchTodos();
       }
     } catch (error) {
       console.error('Failed to update todo:', error);
@@ -115,12 +125,12 @@ export default function Home() {
     setNewTag('');
   }
 
-  function saveEdit(id) {
+  async function saveEdit(id) {
     if (!editingTitle.trim()) {
       cancelEdit();
       return;
     }
-    updateTodo(id, { title: editingTitle, tags: editingTags });
+    await updateTodo(id, { title: editingTitle, tags: editingTags });
     setEditingId(null);
     setEditingTitle('');
     setEditingTags([]);
