@@ -13,6 +13,7 @@ export default function Home() {
   const [selectedTags, setSelectedTags] = useState([]); // フィルター用
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'grouped'
   const [showTagFilter, setShowTagFilter] = useState(false);
+  const [showCompleted, setShowCompleted] = useState(true); // 完了済みタスクを表示するか
 
   // Format date for display
   function formatDate(dateString) {
@@ -59,15 +60,29 @@ export default function Home() {
     }
   }
 
+  // Toggle task completion
+  async function toggleComplete(id, currentStatus) {
+    await updateTodo(id, { completed: !currentStatus });
+  }
+
   // Get filtered todos
   function getFilteredTodos() {
     const sorted = getSortedTodos();
-    if (selectedTags.length === 0) {
-      return sorted;
+    let filtered = sorted;
+
+    // Filter by completion status
+    if (!showCompleted) {
+      filtered = filtered.filter(todo => !todo.completed);
     }
-    return sorted.filter(todo =>
-      todo.tags && todo.tags.some(tag => selectedTags.includes(tag))
-    );
+
+    // Filter by tags
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(todo =>
+        todo.tags && todo.tags.some(tag => selectedTags.includes(tag))
+      );
+    }
+
+    return filtered;
   }
 
   // Get grouped todos by tag
@@ -321,7 +336,18 @@ export default function Home() {
               </div>
 
               {/* View Mode and Sort */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => setShowCompleted(!showCompleted)}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors ${
+                    showCompleted
+                      ? 'text-amber-800 bg-amber-100 hover:bg-amber-200'
+                      : 'text-white bg-amber-600 hover:bg-amber-700'
+                  }`}
+                >
+                  <span>{showCompleted ? '完了済みを非表示' : '完了済みを表示'}</span>
+                </button>
+
                 <button
                   onClick={() => setViewMode(viewMode === 'list' ? 'grouped' : 'list')}
                   className="flex items-center gap-2 px-4 py-2 text-sm text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors"
@@ -424,9 +450,19 @@ export default function Home() {
                 ) : (
                   <div className="space-y-3">
                     {/* Title and Date */}
-                    <div className="flex items-start gap-2">
+                    <div className="flex items-start gap-3">
+                      {/* Checkbox */}
+                      <input
+                        type="checkbox"
+                        checked={todo.completed || false}
+                        onChange={() => toggleComplete(todo.id, todo.completed)}
+                        className="mt-1 w-5 h-5 rounded border-2 border-amber-400 text-amber-600 focus:ring-amber-500 cursor-pointer flex-shrink-0"
+                      />
+
                       <div className="flex-1 min-w-0">
-                        <div className="text-base sm:text-lg text-gray-800 break-words">
+                        <div className={`text-base sm:text-lg break-words ${
+                          todo.completed ? 'line-through text-gray-400' : 'text-gray-800'
+                        }`}>
                           {todo.title}
                         </div>
                         <div className="text-xs sm:text-sm text-gray-500 mt-1">
@@ -571,9 +607,19 @@ export default function Home() {
                         ) : (
                           <div className="space-y-3">
                             {/* Title and Date */}
-                            <div className="flex items-start gap-2">
+                            <div className="flex items-start gap-3">
+                              {/* Checkbox */}
+                              <input
+                                type="checkbox"
+                                checked={todo.completed || false}
+                                onChange={() => toggleComplete(todo.id, todo.completed)}
+                                className="mt-1 w-5 h-5 rounded border-2 border-amber-400 text-amber-600 focus:ring-amber-500 cursor-pointer flex-shrink-0"
+                              />
+
                               <div className="flex-1 min-w-0">
-                                <div className="text-base sm:text-lg text-gray-800 break-words">
+                                <div className={`text-base sm:text-lg break-words ${
+                                  todo.completed ? 'line-through text-gray-400' : 'text-gray-800'
+                                }`}>
                                   {todo.title}
                                 </div>
                                 <div className="text-xs sm:text-sm text-gray-500 mt-1">
