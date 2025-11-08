@@ -26,13 +26,13 @@ export default function Home() {
       }
     }
 
-    if (showTagFilter) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [showTagFilter]);
+    // Always add listener, but only act when dropdown is open
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Format date for display
   function formatDate(dateString) {
@@ -310,9 +310,12 @@ export default function Home() {
           {todos.length > 0 && (
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
               {/* Tag Filter Dropdown */}
-              <div ref={tagFilterRef} className="relative flex-1">
+              <div ref={tagFilterRef} className="relative w-full sm:w-auto">
                 <button
-                  onClick={() => setShowTagFilter(!showTagFilter)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowTagFilter(!showTagFilter);
+                  }}
                   className="w-full sm:w-auto flex items-center gap-2 px-4 py-2 text-sm text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors"
                 >
                   <span>タグで絞り込み</span>
