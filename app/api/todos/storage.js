@@ -20,11 +20,19 @@ export function updateTodo(id, updates) {
   const index = todos.findIndex(todo => todo.id === id);
   if (index === -1) return null;
 
+  // Ensure tags property exists
+  if (!todos[index].tags) {
+    todos[index].tags = [];
+  }
+
   if (updates.title !== undefined) {
     todos[index].title = updates.title;
   }
   if (updates.completed !== undefined) {
     todos[index].completed = updates.completed;
+  }
+  if (updates.tags !== undefined) {
+    todos[index].tags = updates.tags;
   }
 
   return todos[index];

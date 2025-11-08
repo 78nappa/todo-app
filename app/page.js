@@ -8,6 +8,8 @@ export default function Home() {
   const [editingId, setEditingId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
+  const [newTag, setNewTag] = useState('');
+  const [editingTags, setEditingTags] = useState([]);
 
   // Format date for display
   function formatDate(dateString) {
@@ -103,11 +105,14 @@ export default function Home() {
   function startEdit(todo) {
     setEditingId(todo.id);
     setEditingTitle(todo.title);
+    setEditingTags(todo.tags || []);
   }
 
   function cancelEdit() {
     setEditingId(null);
     setEditingTitle('');
+    setEditingTags([]);
+    setNewTag('');
   }
 
   function saveEdit(id) {
@@ -115,9 +120,47 @@ export default function Home() {
       cancelEdit();
       return;
     }
-    updateTodo(id, { title: editingTitle });
+    updateTodo(id, { title: editingTitle, tags: editingTags });
     setEditingId(null);
     setEditingTitle('');
+    setEditingTags([]);
+    setNewTag('');
+  }
+
+  function addTagToTodo(todoId, tag) {
+    if (!tag.trim()) return;
+
+    const todo = todos.find(t => t.id === todoId);
+    if (!todo) return;
+
+    const currentTags = todo.tags || [];
+    if (currentTags.includes(tag.trim())) {
+      return; // 重複を防ぐ
+    }
+
+    const updatedTags = [...currentTags, tag.trim()];
+    updateTodo(todoId, { tags: updatedTags });
+  }
+
+  function removeTagFromTodo(todoId, tagToRemove) {
+    const todo = todos.find(t => t.id === todoId);
+    if (!todo) return;
+
+    const updatedTags = (todo.tags || []).filter(tag => tag !== tagToRemove);
+    updateTodo(todoId, { tags: updatedTags });
+  }
+
+  function addTagToEditingTask(tag) {
+    if (!tag.trim()) return;
+    if (editingTags.includes(tag.trim())) {
+      return; // 重複を防ぐ
+    }
+    setEditingTags([...editingTags, tag.trim()]);
+    setNewTag('');
+  }
+
+  function removeTagFromEditingTask(tagToRemove) {
+    setEditingTags(editingTags.filter(tag => tag !== tagToRemove));
   }
 
   return (
@@ -166,61 +209,133 @@ export default function Home() {
             {getSortedTodos().map((todo) => (
               <div
                 key={todo.id}
-                className="flex items-center gap-2 sm:gap-4 bg-white border-2 border-amber-300 rounded-2xl p-3 sm:p-6"
+                className="bg-white border-2 border-amber-300 rounded-2xl p-3 sm:p-6"
               >
                 {editingId === todo.id ? (
-                  <>
-                    <input
-                      type="text"
-                      value={editingTitle}
-                      onChange={(e) => setEditingTitle(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') saveEdit(todo.id);
-                        if (e.key === 'Escape') cancelEdit();
-                      }}
-                      className="flex-1 px-3 sm:px-4 py-2 text-base sm:text-lg border-2 border-amber-300 rounded-lg focus:outline-none focus:border-amber-500"
-                      autoFocus
-                    />
-                    <button
-                      onClick={() => saveEdit(todo.id)}
-                      className="text-green-600 hover:text-green-700 text-xl sm:text-2xl min-w-[2rem] sm:min-w-0"
-                      title="Save"
-                    >
-                      ✓
-                    </button>
-                    <button
-                      onClick={cancelEdit}
-                      className="text-red-600 hover:text-red-700 text-xl sm:text-2xl min-w-[2rem] sm:min-w-0"
-                      title="Cancel"
-                    >
-                      ✕
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-base sm:text-lg text-gray-800 break-words">
-                        {todo.title}
+                  <div className="space-y-3">
+                    {/* Title Edit */}
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={editingTitle}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') saveEdit(todo.id);
+                          if (e.key === 'Escape') cancelEdit();
+                        }}
+                        className="flex-1 px-3 sm:px-4 py-2 text-base sm:text-lg border-2 border-amber-300 rounded-lg focus:outline-none focus:border-amber-500"
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => saveEdit(todo.id)}
+                        className="text-green-600 hover:text-green-700 text-xl sm:text-2xl min-w-[2rem]"
+                        title="Save"
+                      >
+                        ✓
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="text-red-600 hover:text-red-700 text-xl sm:text-2xl min-w-[2rem]"
+                        title="Cancel"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    {/* Tag Edit Area */}
+                    <div className="border-t pt-3">
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          type="text"
+                          value={newTag}
+                          onChange={(e) => setNewTag(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') addTagToEditingTask(newTag);
+                          }}
+                          placeholder="タグを追加"
+                          className="flex-1 px-3 py-1.5 text-sm border border-amber-300 rounded-lg focus:outline-none focus:border-amber-500"
+                        />
+                        <button
+                          onClick={() => addTagToEditingTask(newTag)}
+                          className="px-3 py-1.5 bg-amber-200 hover:bg-amber-300 text-amber-900 text-sm rounded-lg whitespace-nowrap"
+                        >
+                          追加
+                        </button>
                       </div>
-                      <div className="text-xs sm:text-sm text-gray-500 mt-1">
-                        {formatDate(todo.createdAt)}
+                      {editingTags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {editingTags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 text-xs rounded-full"
+                            >
+                              {tag}
+                              <button
+                                onClick={() => removeTagFromEditingTask(tag)}
+                                className="hover:text-red-600"
+                                title="削除"
+                              >
+                                ✕
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {/* Title and Date */}
+                    <div className="flex items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-base sm:text-lg text-gray-800 break-words">
+                          {todo.title}
+                        </div>
+                        <div className="text-xs sm:text-sm text-gray-500 mt-1">
+                          {formatDate(todo.createdAt)}
+                        </div>
+                      </div>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => startEdit(todo)}
+                          className="text-xl sm:text-2xl hover:opacity-70 transition-opacity"
+                          title="Edit"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={() => deleteTodo(todo.id)}
+                          className="text-xl sm:text-2xl hover:opacity-70 transition-opacity"
+                          title="Delete"
+                        >
+                          🗑️
+                        </button>
                       </div>
                     </div>
-                    <button
-                      onClick={() => startEdit(todo)}
-                      className="text-xl sm:text-2xl hover:opacity-70 transition-opacity min-w-[2rem] sm:min-w-0 flex-shrink-0"
-                      title="Edit"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      onClick={() => deleteTodo(todo.id)}
-                      className="text-xl sm:text-2xl hover:opacity-70 transition-opacity min-w-[2rem] sm:min-w-0 flex-shrink-0"
-                      title="Delete"
-                    >
-                      🗑️
-                    </button>
-                  </>
+
+                    {/* Tag Display Area */}
+                    {(todo.tags && todo.tags.length > 0) && (
+                      <div className="border-t pt-3">
+                        <div className="flex flex-wrap gap-1.5">
+                          {todo.tags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 text-xs rounded-full"
+                            >
+                              {tag}
+                              <button
+                                onClick={() => removeTagFromTodo(todo.id, tag)}
+                                className="hover:text-red-600"
+                                title="削除"
+                              >
+                                ✕
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             ))}

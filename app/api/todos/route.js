@@ -24,6 +24,7 @@ export async function POST(request) {
       id: crypto.randomUUID(),
       title: title.trim(),
       completed: false,
+      tags: [],
       createdAt: new Date().toISOString(),
     };
 
