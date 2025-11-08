@@ -450,15 +450,7 @@ export default function Home() {
                 ) : (
                   <div className="space-y-3">
                     {/* Title and Date */}
-                    <div className="flex items-start gap-3">
-                      {/* Checkbox */}
-                      <input
-                        type="checkbox"
-                        checked={todo.completed || false}
-                        onChange={() => toggleComplete(todo.id, todo.completed)}
-                        className="mt-1 w-5 h-5 rounded border-2 border-amber-400 text-amber-600 focus:ring-amber-500 cursor-pointer flex-shrink-0"
-                      />
-
+                    <div className="flex items-start gap-2 sm:gap-3">
                       <div className="flex-1 min-w-0">
                         <div className={`text-base sm:text-lg break-words ${
                           todo.completed ? 'line-through text-gray-400' : 'text-gray-800'
@@ -470,6 +462,17 @@ export default function Home() {
                         </div>
                       </div>
                       <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => toggleComplete(todo.id, todo.completed)}
+                          className={`px-3 py-1 text-xs sm:text-sm rounded-lg transition-colors whitespace-nowrap ${
+                            todo.completed
+                              ? 'bg-gray-300 text-gray-600 hover:bg-gray-400'
+                              : 'bg-green-500 text-white hover:bg-green-600'
+                          }`}
+                          title={todo.completed ? '未完了に戻す' : '完了にする'}
+                        >
+                          {todo.completed ? '完了済' : '完了'}
+                        </button>
                         <button
                           onClick={() => startEdit(todo)}
                           className="text-xl sm:text-2xl hover:opacity-70 transition-opacity"
@@ -607,15 +610,7 @@ export default function Home() {
                         ) : (
                           <div className="space-y-3">
                             {/* Title and Date */}
-                            <div className="flex items-start gap-3">
-                              {/* Checkbox */}
-                              <input
-                                type="checkbox"
-                                checked={todo.completed || false}
-                                onChange={() => toggleComplete(todo.id, todo.completed)}
-                                className="mt-1 w-5 h-5 rounded border-2 border-amber-400 text-amber-600 focus:ring-amber-500 cursor-pointer flex-shrink-0"
-                              />
-
+                            <div className="flex items-start gap-2 sm:gap-3">
                               <div className="flex-1 min-w-0">
                                 <div className={`text-base sm:text-lg break-words ${
                                   todo.completed ? 'line-through text-gray-400' : 'text-gray-800'
@@ -627,6 +622,17 @@ export default function Home() {
                                 </div>
                               </div>
                               <div className="flex gap-2 flex-shrink-0">
+                                <button
+                                  onClick={() => toggleComplete(todo.id, todo.completed)}
+                                  className={`px-3 py-1 text-xs sm:text-sm rounded-lg transition-colors whitespace-nowrap ${
+                                    todo.completed
+                                      ? 'bg-gray-300 text-gray-600 hover:bg-gray-400'
+                                      : 'bg-green-500 text-white hover:bg-green-600'
+                                  }`}
+                                  title={todo.completed ? '未完了に戻す' : '完了にする'}
+                                >
+                                  {todo.completed ? '完了済' : '完了'}
+                                </button>
                                 <button
                                   onClick={() => startEdit(todo)}
                                   className="text-xl sm:text-2xl hover:opacity-70 transition-opacity"
