@@ -12,7 +12,7 @@ export async function PATCH(request, { params }) {
       updates.title = updates.title.trim();
     }
 
-    const updatedTodo = updateTodo(id, updates);
+    const updatedTodo = await updateTodo(id, updates);
 
     if (!updatedTodo) {
       return NextResponse.json(
@@ -35,7 +35,7 @@ export async function DELETE(request, { params }) {
   try {
     const { id } = params;
 
-    const success = deleteTodo(id);
+    const success = await deleteTodo(id);
 
     if (!success) {
       return NextResponse.json(

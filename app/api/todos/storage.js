@@ -1,47 +1,99 @@
-// In-memory storage for Phase 1
-// This will be replaced with Supabase in Phase 2
+// Supabase storage for Phase 2
+import { createClient } from '@supabase/supabase-js';
 
-let todos = [];
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export function getAllTodos() {
-  return todos;
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables. Please check your .env.local file.');
 }
 
-export function addTodo(todo) {
-  todos.push(todo);
-  return todo;
-}
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export function getTodoById(id) {
-  return todos.find(todo => todo.id === id);
-}
+export async function getAllTodos() {
+  const { data, error } = await supabase
+    .from('todos')
+    .select('*')
+    .order('createdAt', { ascending: false });
 
-export function updateTodo(id, updates) {
-  const index = todos.findIndex(todo => todo.id === id);
-  if (index === -1) return null;
-
-  // Ensure tags property exists
-  if (!todos[index].tags) {
-    todos[index].tags = [];
+  if (error) {
+    console.error('Error fetching todos:', error);
+    throw error;
   }
+
+  return data || [];
+}
+
+export async function addTodo(todo) {
+  const { data, error } = await supabase
+    .from('todos')
+    .insert([todo])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error adding todo:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function getTodoById(id) {
+  const { data, error } = await supabase
+    .from('todos')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching todo:', error);
+    return null;
+  }
+
+  return data;
+}
+
+export async function updateTodo(id, updates) {
+  // Prepare the update object
+  const updateData = {};
 
   if (updates.title !== undefined) {
-    todos[index].title = updates.title;
+    updateData.title = updates.title;
   }
   if (updates.completed !== undefined) {
-    todos[index].completed = updates.completed;
+    updateData.completed = updates.completed;
   }
   if (updates.tags !== undefined) {
-    todos[index].tags = updates.tags;
+    updateData.tags = updates.tags;
   }
 
-  return todos[index];
+  const { data, error } = await supabase
+    .from('todos')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating todo:', error);
+    return null;
+  }
+
+  return data;
 }
 
-export function deleteTodo(id) {
-  const index = todos.findIndex(todo => todo.id === id);
-  if (index === -1) return false;
+export async function deleteTodo(id) {
+  const { error } = await supabase
+    .from('todos')
+    .delete()
+    .eq('id', id);
 
-  todos.splice(index, 1);
+  if (error) {
+    console.error('Error deleting todo:', error);
+    return false;
+  }
+
   return true;
 }

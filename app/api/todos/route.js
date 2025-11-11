@@ -4,8 +4,16 @@ import { getAllTodos, addTodo } from './storage';
 
 // GET /api/todos - Get all todos
 export async function GET() {
-  const todos = getAllTodos();
-  return NextResponse.json(todos);
+  try {
+    const todos = await getAllTodos();
+    return NextResponse.json(todos);
+  } catch (error) {
+    console.error('Error in GET /api/todos:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch todos' },
+      { status: 500 }
+    );
+  }
 }
 
 // POST /api/todos - Create a new todo
@@ -28,8 +36,8 @@ export async function POST(request) {
       createdAt: new Date().toISOString(),
     };
 
-    addTodo(newTodo);
-    return NextResponse.json(newTodo, { status: 201 });
+    const savedTodo = await addTodo(newTodo);
+    return NextResponse.json(savedTodo, { status: 201 });
   } catch (error) {
     return NextResponse.json(
       { error: 'Invalid request' },
