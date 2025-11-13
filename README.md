@@ -74,13 +74,13 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 **注意:**
 - `.env.local`: npm/nodeで直接起動する場合に使用
-- `.env`: Dockerで起動する場合に使用（docker-composeが自動的に読み込みます）
+- `.env`: Dockerで起動する場合に使用（Docker Composeが自動的に読み込みます）
 
 ### 3. アプリケーションの起動
 
 #### Dockerを使用する場合
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 #### npm/nodeを直接使用する場合
