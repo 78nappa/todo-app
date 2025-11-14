@@ -148,7 +148,7 @@ export default function Home() {
 
   async function fetchTodos() {
     try {
-      const res = await fetch('/api/todos');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/todos`);
       const data = await res.json();
       setTodos(data);
     } catch (error) {
@@ -160,7 +160,7 @@ export default function Home() {
     if (!newTask.trim()) return;
 
     try {
-      const res = await fetch('/api/todos', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/todos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: newTask }),
@@ -185,7 +185,7 @@ export default function Home() {
 
   async function updateTodo(id, updates) {
     try {
-      const res = await fetch(`/api/todos/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/todos/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
@@ -205,7 +205,7 @@ export default function Home() {
 
   async function deleteTodo(id) {
     try {
-      const res = await fetch(`/api/todos/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/todos/${id}`, {
         method: 'DELETE',
       });
 

@@ -1,5 +1,14 @@
 import { NextResponse } from 'next/server';
 import { updateTodo, deleteTodo } from '../storage';
+import { corsHeaders } from '../../../../lib/cors';
+
+// OPTIONS /api/todos/[id] - Handle preflight requests
+export async function OPTIONS(request) {
+  return new Response(null, {
+    status: 204,
+    headers: corsHeaders(request.headers.get('origin')),
+  });
+}
 
 // PATCH /api/todos/[id] - Update a todo
 export async function PATCH(request, { params }) {
@@ -17,15 +26,23 @@ export async function PATCH(request, { params }) {
     if (!updatedTodo) {
       return NextResponse.json(
         { error: 'Todo not found' },
-        { status: 404 }
+        {
+          status: 404,
+          headers: corsHeaders(request.headers.get('origin')),
+        }
       );
     }
 
-    return NextResponse.json(updatedTodo);
+    return NextResponse.json(updatedTodo, {
+      headers: corsHeaders(request.headers.get('origin')),
+    });
   } catch (error) {
     return NextResponse.json(
       { error: 'Invalid request' },
-      { status: 400 }
+      {
+        status: 400,
+        headers: corsHeaders(request.headers.get('origin')),
+      }
     );
   }
 }
@@ -40,15 +57,24 @@ export async function DELETE(request, { params }) {
     if (!success) {
       return NextResponse.json(
         { error: 'Todo not found' },
-        { status: 404 }
+        {
+          status: 404,
+          headers: corsHeaders(request.headers.get('origin')),
+        }
       );
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json(
+      { success: true },
+      { headers: corsHeaders(request.headers.get('origin')) }
+    );
   } catch (error) {
     return NextResponse.json(
       { error: 'Invalid request' },
-      { status: 400 }
+      {
+        status: 400,
+        headers: corsHeaders(request.headers.get('origin')),
+      }
     );
   }
 }

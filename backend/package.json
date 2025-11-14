@@ -1,0 +1,14 @@
+{
+  "name": "todo-backend",
+  "version": "1.0.0",
+  "description": "TODO App Backend API",
+  "scripts": {
+    "dev": "next dev -p 4000",
+    "build": "next build",
+    "start": "next start -p 4000"
+  },
+  "dependencies": {
+    "next": "15.0.3",
+    "@supabase/supabase-js": "^2.47.10"
+  }
+}
