@@ -15,20 +15,27 @@ Next.jsで作成したシンプルなTODOアプリです。
 
 ```
 todo-app/
-├── app/                    # フロントエンド (Next.js UI)
-│   ├── page.js            # メインページ
-│   ├── layout.js          # レイアウト
-│   └── globals.css        # グローバルスタイル
+├── frontend/              # フロントエンド (Next.js UI)
+│   ├── app/
+│   │   ├── page.js       # メインページ
+│   │   ├── layout.js     # レイアウト
+│   │   └── globals.css   # グローバルスタイル
+│   ├── package.json      # フロントエンド専用の依存関係
+│   ├── next.config.js    # Next.js設定
+│   └── Dockerfile        # フロントエンドのDocker設定
 │
-├── backend/               # バックエンド (API専用)
+├── backend/              # バックエンド (API専用)
 │   ├── app/api/todos/    # API Routes
 │   │   ├── route.js      # GET/POST /api/todos
 │   │   ├── [id]/route.js # PATCH/DELETE /api/todos/[id]
 │   │   └── storage.js    # Supabaseデータベース操作
 │   ├── lib/cors.js       # CORS設定
-│   └── package.json      # バックエンド専用の依存関係
+│   ├── package.json      # バックエンド専用の依存関係
+│   └── Dockerfile        # バックエンドのDocker設定
 │
-└── compose.yml           # Docker Compose設定
+├── compose.yml           # Docker Compose設定
+├── README.md             # プロジェクトドキュメント
+└── .gitignore            # Git除外設定
 ```
 
 ### 通信フロー
@@ -57,7 +64,9 @@ todo-app/
 
 ```bash
 # フロントエンドの依存関係
+cd frontend
 npm install
+cd ..
 
 # バックエンドの依存関係
 cd backend
@@ -98,12 +107,12 @@ ALTER TABLE todos DISABLE ROW LEVEL SECURITY;
 
 フロントエンドとバックエンドで異なる環境変数が必要です：
 
-**フロントエンド** (`.env.local`)：
+**フロントエンド** (`frontend/.env.local`)：
 ```bash
-cp .env.local.example .env.local
+cp frontend/.env.local.example frontend/.env.local
 ```
 
-`.env.local`の内容：
+`frontend/.env.local`の内容：
 ```
 NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
@@ -143,6 +152,7 @@ npm run dev
 
 **ターミナル2 - フロントエンド:**
 ```bash
+cd frontend
 npm run dev
 # フロントエンド: http://localhost:3001
 ```
