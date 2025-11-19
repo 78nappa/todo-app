@@ -15,11 +15,11 @@ services:
     command: npm run dev
 
   frontend:
-    build: .
+    build: ./frontend
     ports:
       - "3001:3001"
     volumes:
-      - .:/app
+      - ./frontend:/app
       - /app/node_modules
       - /app/.next
     environment:
