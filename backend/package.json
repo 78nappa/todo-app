@@ -9,6 +9,6 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.10",
-    "next": "^15.5.7"
+    "next": "15.5.7"
   }
 }
